@@ -277,7 +277,7 @@ services:
       - SERVER_PORT=8091
       - TMS_BASE_URL=http://tazama-tms:3000
     depends_on:
-      - tazama-tms
+      - tms-service
     networks:
       - tazama-network
     restart: unless-stopped
