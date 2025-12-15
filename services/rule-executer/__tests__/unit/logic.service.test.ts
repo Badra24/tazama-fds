@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { NetworkMap, RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { DataCacheSample, NetworkMapSample, Pacs002Sample } from '@tazama-lf/frms-coe-lib/lib/tests/data';
-import * as ruleLogic from 'rule/lib';
+// import * as ruleLogic from 'rule/lib';
+// Import the local rule implementation directly for tests/build without requiring private package resolution
+import * as ruleLogic from '../../rule-903/lib';
 import { configuration, databaseManager, initializeDB, runServer, server } from '../../src';
 import { execute } from '../../src/controllers/execute';
 import determineOutcome from '../../src/helpers/determineOutcome';

@@ -17,7 +17,7 @@
     "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "./rule-903/lib/index.d.ts"],
   "exclude": [
     "node_modules",
     "build"

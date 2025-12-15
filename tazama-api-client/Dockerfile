@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 # Install system deps
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential gcc libpq-dev netcat curl \
+    && apt-get install -y --no-install-recommends build-essential gcc libpq-dev netcat-openbsd curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
