@@ -73,7 +73,7 @@ https://github.com/tazama-lf/relay-service
 
 
 
-1. admin-service ✅
+1. admin-service
 URL: https://github.com/tazama-lf/admin-service
 Port: 3100 (as you mentioned)
 Purpose: Administration API for managing configurations, reports, and event flow control conditions.
@@ -84,7 +84,7 @@ CRUD operations for Network Map, Rule Config, and Typology Config
 JWT-based authentication with capability-based permissions
 
 
-2. tms-service (TMS) ✅
+2. tms-service (TMS)
 URL: https://github.com/tazama-lf/tms-service
 Port: 3000 (as you mentioned)
 Purpose: Transaction Monitoring Service - the entry point for all transactions.
@@ -97,7 +97,7 @@ Sends messages to Event Director via NATS.
 
 Flow: External Client → TMS → Event Director
 
-3. event-director (ED) ✅
+3. event-director (ED)
 URL: https://github.com/tazama-lf/event-director
 Purpose: Routes transactions to rules for processing based on the Network Map.
 Key Functions:
@@ -108,7 +108,7 @@ Dispatches messages to Rule Processors via NATS
 
 Flow: TMS → Event Director → Rule Processors (rule-901, event-flow, etc.)
 
-4. rule-executer ✅
+4. rule-executer
 URL: https://github.com/tazama-lf/rule-executer
 Purpose: Generic rule execution framework - this is a template/executor, not a specific rule.
 Key Functions: 
@@ -120,7 +120,7 @@ Sends results to Typology Processor
 Note: "rule-901" is built FROM rule-executer by installing a rule library (like @tazama-lf/rule-901)
 Flow: Event Director → Rule Executer (with rule-901 library) → Typology Processor
 
-5. typology-processor (TP) ✅
+5. typology-processor (TP)
 URL: https://github.com/tazama-lf/typology-processor
 Purpose: Calculates typology scores based on rule results.
 Key Functions:
@@ -132,7 +132,7 @@ Sends results to TADP
 
 Flow: Rule Processors → Typology Processor → TADP (and optionally Interdiction Service)
 
-6. transaction-aggregation-decisioning-processor (TADP) ✅
+6. transaction-aggregation-decisioning-processor (TADP)
 URL: https://github.com/tazama-lf/transaction-aggregation-decisioning-processor
 Purpose: Final aggregation and decision-making for transactions.
 Key Functions:
@@ -144,7 +144,7 @@ Can send alerts to CMS (Case Management System) via NATS
 
 Flow: Typology Processor → TADP → (optionally) CMS/Alert Service
 
-7. event-flow (ef / EFRuP) ✅
+7. event-flow (ef / EFRuP)
 URL: https://github.com/tazama-lf/event-flow
 Purpose: Specialized rule processor for event flow control (blocking/overriding transactions based on conditions).
 Key Functions:
@@ -155,7 +155,7 @@ Part of every typology to enable dynamic transaction control
 
 Flow: Event Director → Event Flow → Typology Processor
 
-8. relay-service ✅
+8. relay-service
 URL: https://github.com/tazama-lf/relay-service
 Purpose: Bridge/adapter service for forwarding NATS messages to external systems.
 Key Functions:
