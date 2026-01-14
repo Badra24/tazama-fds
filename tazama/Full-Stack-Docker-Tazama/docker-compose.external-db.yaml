@@ -1,0 +1,42 @@
+# Docker Compose Override untuk External PostgreSQL
+# File: docker-compose.external-db.yaml
+#
+# Usage:
+# docker-compose -f docker-compose.base.infrastructure.yaml \
+#                -f docker-compose.external-db.yaml \
+#                -f docker-compose.hub.cfg.yaml \
+#                -f docker-compose.hub.core.yaml \
+#                -f docker-compose.hub.rules.yaml \
+#                up -d
+
+services:
+  # Disable built-in PostgreSQL container
+  postgres:
+    deploy:
+      replicas: 0 # Don't start postgres container
+
+  # Update services to use external PostgreSQL
+  # Services will read DATABASE_URL from .env file
+
+  # Optional: Add extra_hosts for services that need explicit host mapping
+  tms:
+    extra_hosts:
+      - "postgres:host.docker.internal"
+    environment:
+      - CONFIGURATION_DATABASE_URL=${CONFIGURATION_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/configuration}
+      - EVENT_HISTORY_DATABASE_URL=${EVENT_HISTORY_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/event_history}
+
+  typology-processor:
+    extra_hosts:
+      - "postgres:host.docker.internal"
+    environment:
+      - CONFIGURATION_DATABASE_URL=${CONFIGURATION_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/configuration}
+      - EVENT_HISTORY_DATABASE_URL=${EVENT_HISTORY_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/event_history}
+
+  transaction-aggregation-decisioning-processor:
+    extra_hosts:
+      - "postgres:host.docker.internal"
+    environment:
+      - CONFIGURATION_DATABASE_URL=${CONFIGURATION_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/configuration}
+      - EVENT_HISTORY_DATABASE_URL=${EVENT_HISTORY_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/event_history}
+      - EVALUATION_DATABASE_URL=${EVALUATION_DATABASE_URL:-postgresql://postgres:password@host.docker.internal:5432/evaluation}

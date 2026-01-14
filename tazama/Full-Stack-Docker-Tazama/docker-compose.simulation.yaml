@@ -1,0 +1,17 @@
+services:
+  velocity-sim:
+    build:
+      context: ./simulation
+      dockerfile: Dockerfile
+    container_name: velocity-sim
+    environment:
+      - TARGET_URL=http://tms:3000/evaluate
+    depends_on:
+      - tms
+    networks:
+      - tazama_network
+
+networks:
+  tazama_network:
+    external: true
+    name: tazama_net
