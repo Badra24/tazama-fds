@@ -25,6 +25,10 @@ COPY package*.json ./
 COPY .npmrc ./
 ARG GH_TOKEN
 RUN npm ci --omit=dev --ignore-scripts
+# PATCH: Fix hidden character issue in database query by adding TRIM()
+RUN sed -i 's/typologyId = \$1/TRIM(typologyId) = \$1/g' node_modules/@tazama-lf/frms-coe-lib/lib/builders/configurationBuilder.js && \
+    sed -i 's/typologyCfg = \$2/TRIM(typologyCfg) = \$2/g' node_modules/@tazama-lf/frms-coe-lib/lib/builders/configurationBuilder.js && \
+    sed -i 's/tenantId = \$3/TRIM(tenantId) = \$3/g' node_modules/@tazama-lf/frms-coe-lib/lib/builders/configurationBuilder.js
 
 FROM ${RUN_IMAGE} AS run-env
 USER nonroot

@@ -3,9 +3,8 @@ import apm from '../apm';
 import type { RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/metaData';
 import * as util from 'node:util';
-// import { handleTransaction } from 'rule/lib';
-// Import local rule implementation directly to avoid relying on external/private package resolution during image builds
-import { handleTransaction } from '../../rule-903/lib';
+import { handleTransaction } from 'rule/lib';
+// import { handleTransaction } from '../../rule-903/lib';
 import { databaseManager, loggerService, server } from '..';
 import { configuration } from '../';
 import determineOutcome from '../helpers/determineOutcome';

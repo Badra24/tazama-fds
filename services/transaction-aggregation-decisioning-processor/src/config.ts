@@ -32,6 +32,11 @@ export const additionalEnvironmentVariables: AdditionalConfig[] = [
     type: 'string',
     optional: false,
   },
+  {
+    name: 'CONSUMER_STREAM',
+    type: 'string',
+    optional: true,
+  },
 ];
 
 export type DatabasesConfig = Required<Pick<ManagerConfig, 'configuration' | 'evaluation' | 'localCacheConfig' | 'redisConfig'>>;

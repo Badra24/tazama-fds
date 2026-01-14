@@ -1,0 +1,376 @@
+/* ========================================
+   Tazama Transfer UI - Design System
+   ======================================== */
+
+:root {
+  /* Colors */
+  --color-primary: #2d8a4a;
+  --color-primary-dark: #1f6234;
+  --color-primary-light: #4ade80;
+
+  --color-bg: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f3f5;
+  --color-border: #e0e4e8;
+  --color-border-light: #edf0f2;
+
+  --color-text: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-muted: #adb5bd;
+
+  /* Status colors */
+  --color-status-inactive: #ced4da;
+  --color-status-pass: #28a745;
+  --color-status-block: #dc3545;
+  --color-status-review: #ffc107;
+  --color-status-pending: #17a2b8;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Phone dimensions */
+  --phone-width: 180px;
+  --phone-height: 360px;
+}
+
+/* Reset & Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   Layout
+   ======================================== */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  /* Changed from grid to flex for Admin UI flexibility */
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header-logo svg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary);
+}
+
+.header-logo h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.header-logo span {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-left: -4px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--color-surface-alt);
+  border-color: var(--color-text-muted);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* ========================================
+   Cards & Panels
+   ======================================== */
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--spacing-sm);
+}
+
+/* ========================================
+   Tables & Lists
+   ======================================== */
+
+.rule-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  transition: background 0.15s ease;
+}
+
+.rule-item:last-child {
+  border-bottom: none;
+}
+
+.rule-item:hover {
+  background: var(--color-surface-alt);
+}
+
+.rule-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-id {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.rule-cfg {
+  color: var(--color-text-secondary);
+  font-size: 0.9em;
+}
+
+.rule-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.danger {
+  color: var(--color-status-block);
+  border-color: var(--color-status-block);
+  background: var(--color-surface);
+}
+
+.danger:hover {
+  background: #fff5f5;
+}
+
+/* ========================================
+   Statuses & Alerts
+   ======================================== */
+
+.error {
+  color: var(--color-status-block);
+  font-size: 0.9rem;
+  margin: var(--spacing-sm) 0;
+}
+
+.success {
+  color: var(--color-status-pass);
+  background: #e6fffa;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid #b2f5ea;
+  margin: var(--spacing-md) 0;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-lg);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ========================================
+   Overlays & Modals
+   ======================================== */
+
+.editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.editor-modal {
+  background: var(--color-surface);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  width: 600px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.editor-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+
+.close-btn:hover {
+  color: var(--color-text);
+}
+
+/* Form Elements */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(45, 138, 74, 0.1);
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}

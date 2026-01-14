@@ -18,13 +18,13 @@ COPY ./tsconfig.json ./
 COPY .npmrc ./
 ARG GH_TOKEN
 
-# Copy rule-903 directory if it exists
-COPY ./rule-903 ./rule-903
+# Only copy rule-903 directory if building Rule 903
+COPY ./rule-90[3]/ ./rule-903/
 
 # Use package.rule-903.json if Rule 903, otherwise use default package.json
 RUN if [ "$RULE_NAME" = "903" ] && [ -f package.rule-903.json ]; then \
-      cp package.rule-903.json package.json && npm install --package-lock-only --ignore-scripts; \
-    fi
+  cp package.rule-903.json package.json && npm install --package-lock-only --ignore-scripts; \
+  fi
 
 RUN npm ci --ignore-scripts
 RUN npm run build
@@ -41,13 +41,13 @@ COPY package*.json ./
 COPY .npmrc ./
 ARG GH_TOKEN
 
-# Copy rule-903 directory if it exists
-COPY ./rule-903 ./rule-903
+# Only copy rule-903 directory if building Rule 903
+COPY ./rule-90[3]/ ./rule-903/
 
 # Use package.rule-903.json if Rule 903
 RUN if [ "$RULE_NAME" = "903" ] && [ -f package.rule-903.json ]; then \
-      cp package.rule-903.json package.json && npm install --package-lock-only --ignore-scripts; \
-    fi
+  cp package.rule-903.json package.json && npm install --package-lock-only --ignore-scripts; \
+  fi
 
 RUN npm ci --omit=dev --ignore-scripts
 
@@ -61,7 +61,8 @@ ARG RULE_VERSION="2.1.0"
 WORKDIR /home/app
 COPY --from=dep-resolver /node_modules ./node_modules
 COPY --from=builder /home/app/build ./build
-COPY --from=builder /home/app/rule-903 ./rule-903
+# Only copy rule-903 for Rule 903 builds
+COPY --from=builder /home/app/rule-90[3]/ ./rule-903/
 COPY package.json ./
 COPY deployment.yaml ./
 COPY service.yaml ./

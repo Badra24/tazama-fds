@@ -34,7 +34,19 @@ export const runServer = async (): Promise<void> => {
     let isConnected = false;
     for (let retryCount = 0; retryCount < 10; retryCount++) {
       loggerService.log('Connecting to nats server...');
-      const { consumers } = await getRoutesFromNetworkMap(databaseManager, configuration.functionName);
+      let { consumers } = await getRoutesFromNetworkMap(databaseManager, configuration.functionName);
+
+      if (consumers) {
+        consumers = consumers.filter(c => c && c.trim().length > 0);
+      }
+
+      // Fallback if Network Map does not define consumers for TADP
+      if (!consumers || consumers.length === 0) {
+        const fallbackStream = (configuration as any).CONSUMER_STREAM || (configuration as any).consumerStream || 'relay-service';
+        loggerService.warn(`No consumers found in Network Map, falling back to CONSUMER_STREAM: ${fallbackStream}`, 'index.ts');
+        consumers = [fallbackStream];
+      }
+
       if (!(await server.init(handleExecute, undefined, consumers, configuration.ALERT_PRODUCER))) {
         await setTimeout(5000);
       } else {

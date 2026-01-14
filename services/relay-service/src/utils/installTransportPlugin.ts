@@ -4,6 +4,16 @@ import { loggerService } from '..';
 
 export const installTransportPlugin = (pluginName: string): void => {
   try {
+    // Check if plugin is already installed (from Dockerfile build)
+    try {
+      require.resolve(pluginName);
+      loggerService.log(`Plugin ${pluginName} already installed, skipping npm install`);
+      return;
+    } catch {
+      // Plugin not found, proceed with installation
+      loggerService.log(`Plugin ${pluginName} not found, attempting to install...`);
+    }
+
     loggerService.log(`Installing plugin ${pluginName}`);
     
     // Configure npm for GitHub packages if GH_TOKEN is available

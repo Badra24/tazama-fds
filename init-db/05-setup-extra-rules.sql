@@ -161,7 +161,8 @@ insert into rule (configuration) values (
     "config": {
       "parameters": {
         "maxQueryLimit": 5,
-        "tolerance": 0.2
+        "tolerance": 0.2,
+        "maxQueryRange": 86400000
       },
       "exitConditions": [
         {

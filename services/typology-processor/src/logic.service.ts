@@ -69,12 +69,17 @@ const evaluateTypologySendRequest = async (
       (typology) => typology.cfg === currTypologyResult.cfg && typology.id === currTypologyResult.id,
     );
     const typologyResultRules = currTypologyResult.ruleResults;
+    // Debug: Log aggregation progress
+    loggerService.log(`[DEBUG] Aggregation for ${msgId}: ${typologyResultRules.length}/${networkMapRules?.rules.length || 0} rules received`, logContext, msgId);
     if (networkMapRules && typologyResultRules.length < networkMapRules.rules.length) continue;
 
     const startTime = process.hrtime.bigint();
     const spanExecReq = apm.startSpan(`${currTypologyResult.cfg}.exec.Req`);
 
+    // Debug: Log getTypologyConfig parameters
+    loggerService.log(`[DEBUG] Calling getTypologyConfig(id=${currTypologyResult.id}, cfg=${currTypologyResult.cfg}, tenantId=${tenantId})`, logContext, msgId);
     const expression = await databaseManager.getTypologyConfig(currTypologyResult.id, currTypologyResult.cfg, tenantId);
+    loggerService.log(`[DEBUG] getTypologyConfig result: ${expression ? 'FOUND' : 'NULL'}`, logContext, msgId);
 
     if (!expression) {
       loggerService.warn(`No Typology Expression found for Typology ${currTypologyResult.cfg},`, logContext, msgId);
@@ -157,8 +162,14 @@ const evaluateTypologySendRequest = async (
 
     // Send Typology to TADProc
     const spanTadpr = apm.startSpan(`[${transactionId}] Send Typology result to TADP`);
+    const tadpSubject = 'tadp';  // FIXED: Force subject to match TADP stream
+    loggerService.log(`[DEBUG] sending to TADP subject: ${tadpSubject}`, logContext, msgId);
+
     server
-      .handleResponse({ ...tadpReqBody, metaData }, [`typology-${networkMapRules ? networkMapRules.cfg : '000@0.0.0'}`])
+      .handleResponse({ ...tadpReqBody, metaData }, [tadpSubject])
+      .then(() => {
+        loggerService.log(`[DEBUG] Successfully sent to TADP`, logContext, msgId);
+      })
       .catch((error: unknown) => {
         loggerService.error('Error while sending Typology result to TADP', util.inspect(error), logContext, msgId);
       })
@@ -212,7 +223,12 @@ export const handleTransaction = async (req: unknown): Promise<void> => {
   loggerService.log('tx received', context, id);
 
   const transactionId = parsedTrans[transactionType].GrpHdr.MsgId;
-  const tenantId = parsedTrans.TenantId;
+  // Debug: Log tenantId sources
+  const nmTenantId = (networkMap as any).tenantId;
+  const transTenantId = parsedTrans.TenantId;
+  loggerService.log(`[DEBUG] networkMap.tenantId=${nmTenantId}, parsedTrans.TenantId=${transTenantId}`, context, id);
+  const tenantId = nmTenantId || transTenantId || 'DEFAULT';
+  loggerService.log(`[DEBUG] Using tenantId=${tenantId}`, context, id);
   const cacheKey = `${tenantId}:${transactionId}`;
   // Save the rules Result to Redis and continue with the available
   const rulesList: RuleResult[] | undefined = await saveToRedisGetAll(cacheKey, ruleResult);
@@ -230,10 +246,8 @@ export const handleTransaction = async (req: unknown): Promise<void> => {
     return;
   }
 
-  // Typology evaluation and Send to TADP interdiction determining
   await evaluateTypologySendRequest(typologyResult, networkMap, parsedTrans, metaData!, cacheKey, id, dataCache, tenantId);
 
-  // Garbage collection
   if (rulesList.length >= ruleCount) {
     const spanDelete = apm.startSpan(`cache.delete.[${transactionId}].Typology interim cache key`);
     databaseManager.deleteKey(cacheKey);

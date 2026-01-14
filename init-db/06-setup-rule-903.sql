@@ -84,10 +84,12 @@ VALUES (
   }
 }'
 )
-ON CONFLICT (id) DO UPDATE
+ON CONFLICT (ruleId, ruleCfg, tenantId) DO UPDATE
 SET configuration = EXCLUDED.configuration;
 
 -- Update network map to include Rule 903 for pacs.008 (Credit Transfer)
+-- COMMENTED OUT: Incompatible with current JSONB schema of network_map table
+/*
 DELETE FROM network_map 
 WHERE messages LIKE '%"pacs.008.001.10"%' 
 AND rules::text LIKE '%"903@1.0.0"%';
@@ -122,6 +124,7 @@ SET rules = (
     SELECT (EXCLUDED.rules::jsonb || '["903@1.0.0"]'::jsonb)::text::json
     WHERE NOT (network_map.rules::text LIKE '%"903@1.0.0"%')
 );
+*/
 
 -- Create Typology 999 for Rule 903 (Geographic Risk Scoring)
 INSERT INTO typology (configuration)
@@ -167,18 +170,7 @@ VALUES (
 ON CONFLICT (typologyid, typologycfg, tenantid) DO UPDATE
 SET configuration = EXCLUDED.configuration;
 
--- Verify Rule 903 installation
-SELECT 'Rule 903 Configuration:' as info;
-SELECT id, cfg, description, tenantid 
+-- Verify Rule 903 installation (Clean check only)
+SELECT ruleId, ruleCfg, tenantid 
 FROM rule 
-WHERE id = '903@1.0.0';
-
-SELECT 'Network Map for pacs.008:' as info;
-SELECT messages, rules 
-FROM network_map 
-WHERE messages LIKE '%"pacs.008.001.10"%';
-
-SELECT 'Network Map for pacs.002:' as info;
-SELECT messages, rules 
-FROM network_map 
-WHERE messages LIKE '%"pacs.002.001.12"%';
+WHERE ruleId = '903@1.0.0';

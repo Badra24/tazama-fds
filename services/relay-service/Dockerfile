@@ -10,21 +10,27 @@ ARG GH_TOKEN
 WORKDIR /app
 
 # Copy package.json and package-lock.json to the container
-COPY package*.json ./
+COPY services/relay-service/package*.json ./
 
 # Configure npm to use GitHub token for @tazama-lf packages
 RUN echo "@tazama-lf:registry=https://npm.pkg.github.com" > .npmrc && \
     echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" >> .npmrc
 
-# Install dependencies
-RUN npm install
+# Copy locally cloned nats-relay-plugin
+COPY relay-service-integration-nats /tmp/nats-relay-plugin
 
-# Copy the nats-relay-plugin (private package extracted from official image)
-# This must happen AFTER npm install to preserve it
-COPY node_modules/@tazama-lf/nats-relay-plugin ./node_modules/@tazama-lf/nats-relay-plugin
+# Build nats-relay-plugin inside container (needs .npmrc for frms-coe-lib)
+RUN cp .npmrc /tmp/nats-relay-plugin/.npmrc && \
+    cd /tmp/nats-relay-plugin && \
+    npm install --ignore-scripts && \
+    npm run build && \
+    cd /app
+
+# Install dependencies from npm and nats-relay-plugin from local (ignore scripts to skip husky)
+RUN npm install --ignore-scripts && npm install --ignore-scripts /tmp/nats-relay-plugin
 
 # Copy the rest of the application code to the container
-COPY . .
+COPY services/relay-service/ .
 
 # Build the TypeScript code
 RUN npm run build
