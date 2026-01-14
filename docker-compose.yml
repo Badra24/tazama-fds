@@ -101,6 +101,19 @@ services:
     networks:
       - tazama-network
 
+  # Admin UI - Web interface for managing Tazama rules
+  admin-ui:
+    build:
+      context: ./services/tazama-admin-ui
+      dockerfile: Dockerfile
+    container_name: tazama-admin-ui
+    ports:
+      - "5174:80"
+    depends_on:
+      - admin-service
+    networks:
+      - tazama-network
+
   tms-service:
     build:
       context: ./services/tms-service

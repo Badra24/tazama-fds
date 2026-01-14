@@ -89,32 +89,42 @@ values (
     "interdictionThreshold": 400,
     "flowProcessor": "EFRuP@1.0.0"
   },
+  "expression": ["Add", "v901at100at100", "v006at100at100", "v018at100at100"],
   "rules": [
     {
       "id": "901@1.0.0",
       "cfg": "1.0.0",
       "termId": "v901at100at100",
       "wghts": [
-        {
-          "ref": ".err",
-          "wght": "0"
-        },
-        {
-          "ref": ".x00",
-          "wght": "100"
-        },
-        {
-          "ref": ".01",
-          "wght": "100"
-        },
-        {
-          "ref": ".02",
-          "wght": "200"
-        },
-        {
-          "ref": ".03",
-          "wght": "400"
-        }
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".01", "wght": "100" },
+        { "ref": ".02", "wght": "200" },
+        { "ref": ".03", "wght": "400" }
+      ]
+    },
+    {
+      "id": "006@1.0.0",
+      "cfg": "1.0.0",
+      "termId": "v006at100at100",
+      "wghts": [
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".x01", "wght": "100" },
+        { "ref": ".01", "wght": "0" },
+        { "ref": ".02", "wght": "200" }
+      ]
+    },
+    {
+      "id": "018@1.0.0",
+      "cfg": "1.0.0",
+      "termId": "v018at100at100",
+      "wghts": [
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".x01", "wght": "100" },
+        { "ref": ".01", "wght": "0" },
+        { "ref": ".02", "wght": "300" }
       ]
     },
     {
@@ -122,30 +132,14 @@ values (
       "cfg": "none",
       "termId": "vEFRuPat100atnone",
       "wghts": [
-        {
-          "ref": ".err",
-          "wght": "0"
-        },
-        {
-          "ref": "override",
-          "wght": "0"
-        },
-        {
-          "ref": "non-overridable-block",
-          "wght": "0"
-        },
-        {
-          "ref": "overridable-block",
-          "wght": "0"
-        },
-        {
-          "ref": "none",
-          "wght": "0"
-        }
+        { "ref": ".err", "wght": "0" },
+        { "ref": "override", "wght": "0" },
+        { "ref": "non-overridable-block", "wght": "0" },
+        { "ref": "overridable-block", "wght": "0" },
+        { "ref": "none", "wght": "0" }
       ]
     }
-  ],
-  "expression": ["Add", "v901at100at100"]
+  ]
 }'
     ), (
         '{
@@ -158,32 +152,18 @@ values (
     "interdictionThreshold": 500,
     "flowProcessor": "EFRuP@1.0.0"
   },
+  "expression": ["Add", "v901at100at100", "v902at100at100", "v006at100at100", "v018at100at100"],
   "rules": [
     {
       "id": "901@1.0.0",
       "cfg": "1.0.0",
       "termId": "v901at100at100",
       "wghts": [
-        {
-          "ref": ".err",
-          "wght": "0"
-        },
-        {
-          "ref": ".x00",
-          "wght": "100"
-        },
-        {
-          "ref": ".01",
-          "wght": "100"
-        },
-        {
-          "ref": ".02",
-          "wght": "200"
-        },
-        {
-          "ref": ".03",
-          "wght": "400"
-        }
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".01", "wght": "100" },
+        { "ref": ".02", "wght": "200" },
+        { "ref": ".03", "wght": "400" }
       ]
     },
     {
@@ -191,26 +171,35 @@ values (
       "cfg": "1.0.0",
       "termId": "v902at100at100",
       "wghts": [
-        {
-          "ref": ".err",
-          "wght": "0"
-        },
-        {
-          "ref": ".x00",
-          "wght": "100"
-        },
-        {
-          "ref": ".01",
-          "wght": "100"
-        },
-        {
-          "ref": ".02",
-          "wght": "200"
-        },
-        {
-          "ref": ".03",
-          "wght": "400"
-        }
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".01", "wght": "100" },
+        { "ref": ".02", "wght": "200" },
+        { "ref": ".03", "wght": "400" }
+      ]
+    },
+    {
+      "id": "006@1.0.0",
+      "cfg": "1.0.0",
+      "termId": "v006at100at100",
+      "wghts": [
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".x01", "wght": "100" },
+        { "ref": ".01", "wght": "0" },
+        { "ref": ".02", "wght": "200" }
+      ]
+    },
+    {
+      "id": "018@1.0.0",
+      "cfg": "1.0.0",
+      "termId": "v018at100at100",
+      "wghts": [
+        { "ref": ".err", "wght": "0" },
+        { "ref": ".x00", "wght": "100" },
+        { "ref": ".x01", "wght": "100" },
+        { "ref": ".01", "wght": "0" },
+        { "ref": ".02", "wght": "300" }
       ]
     },
     {
@@ -218,29 +207,13 @@ values (
       "cfg": "none",
       "termId": "vEFRuPat100atnone",
       "wghts": [
-        {
-          "ref": ".err",
-          "wght": "0"
-        },
-        {
-          "ref": "override",
-          "wght": "0"
-        },
-        {
-          "ref": "non-overridable-block",
-          "wght": "0"
-        },
-        {
-          "ref": "overridable-block",
-          "wght": "0"
-        },
-        {
-          "ref": "none",
-          "wght": "0"
-        }
+        { "ref": ".err", "wght": "0" },
+        { "ref": "override", "wght": "0" },
+        { "ref": "non-overridable-block", "wght": "0" },
+        { "ref": "overridable-block", "wght": "0" },
+        { "ref": "none", "wght": "0" }
       ]
     }
-  ],
-  "expression": ["Add", "v901at100at100", "v902at100at100"]
+  ]
 }'
     );

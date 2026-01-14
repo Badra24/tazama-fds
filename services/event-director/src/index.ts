@@ -80,6 +80,8 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
         await dbInit();
         // Load all tenant network configurations at startup
         await loadAllNetworkConfigurations();
+        // Subscribe to Redis for hot-reload
+        subscribeToConfigReload();
       }
     } catch (err) {
       loggerService.error(`Error while starting NATS server on Worker ${process.pid}`, util.inspect(err));
@@ -87,6 +89,38 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
     }
   })();
   loggerService.log(`Worker ${process.pid} started`);
+}
+
+/**
+ * Subscribe to Redis Pub/Sub channel for configuration reload signals.
+ */
+function subscribeToConfigReload(): void {
+  const Redis = require('ioredis');
+  const redisConfig = (configuration as any).redisConfig;
+  const redisHost = redisConfig?.servers?.[0]?.host || 'tazama-valkey';
+  const redisPort = redisConfig?.servers?.[0]?.port || 6379;
+
+  const subscriber = new Redis({ host: redisHost, port: redisPort });
+
+  subscriber.subscribe('config:reload', (err: Error | null) => {
+    if (err) {
+      loggerService.error(`[Hot-Reload] Failed to subscribe: ${err.message}`);
+      return;
+    }
+    loggerService.log('[Hot-Reload] Subscribed to config:reload channel');
+  });
+
+  subscriber.on('message', async (channel: string, message: string) => {
+    if (channel === 'config:reload') {
+      loggerService.log(`[Hot-Reload] Received reload signal: ${message}`);
+      try {
+        await loadAllNetworkConfigurations();
+        loggerService.log('[Hot-Reload] Network configurations reloaded successfully');
+      } catch (error) {
+        loggerService.error(`[Hot-Reload] Reload failed: ${(error as Error).message}`);
+      }
+    }
+  });
 }
 
 export { configuration, databaseManager };

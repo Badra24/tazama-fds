@@ -31,13 +31,18 @@ External Client
 └──────────────────┘   └────────────────────┘
        │ NATS                     │
        ▼                          ▼
-┌──────────────────┐   ┌────────────────────┐
-│  Relay Service   │   │   Relay Service    │  ◄── OPTIONAL (if external)
-│   (optional)     │   │    (optional)      │
-└──────────────────┘   └────────────────────┘
-       │                          │
-       ▼                          ▼
-   External CMS            External System
+       │ NATS
+       ▼
+┌────────────────────────────────────────────────────────┐
+│                    Relay Services                      │
+│ ┌───────────────┐  ┌───────────────┐  ┌──────────────┐ │
+│ │ Relay (NATS)  │  │ Relay (REST)  │  │ Relay (Kafka)│ │
+│ └───────────────┘  └───────────────┘  └──────────────┘ │
+└────────────────────────────────────────────────────────┘
+       │                   │                   │
+       ▼                   ▼                   ▼
+   External CMS        External REST       External Kafka
+   (or System)         Endpoint            Topic
 ```
 
 ---
@@ -160,11 +165,11 @@ URL: https://github.com/tazama-lf/relay-service
 Purpose: Bridge/adapter service for forwarding NATS messages to external systems.
 Key Functions:
 Monitors NATS subjects
-Relays messages to external destinations:
-- REST API
-- RabbitMQ
-- Kafka
-- Another NATS server
+Relays messages to external destinations via multiple protocols:
+- **NATS**: Using `relay-service` (standard)
+- **REST**: Using `relay-service-rest` (posts to webhook)
+- **Kafka**: Using `relay-service-kafka` (publishes to topic)
+- RabbitMQ (supported plugin)
 
 
 

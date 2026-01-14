@@ -3,6 +3,10 @@ import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { NetworkMap } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { handlePostExecuteSqlStatement } from '../../services/database.logic.service';
 import type { CrudRepository } from '../repository.base';
+import { databaseManager, loggerService } from '../..';
+
+import { publishReloadSignal } from '../../services/redis.service';
+
 
 export const NetworkMapRepo: CrudRepository<NetworkMap> = {
   list: async function ({ limit, offset, sort, order, filters, tenantId }): Promise<{ data: NetworkMap[]; total: number }> {
@@ -39,6 +43,14 @@ export const NetworkMapRepo: CrudRepository<NetworkMap> = {
 
   create: async function (payload: NetworkMap, tenantId: string): Promise<NetworkMap> {
     payload.tenantId = tenantId;
+    await handlePostExecuteSqlStatement(
+      {
+        text: 'DELETE FROM network_map WHERE configuration->>\'name\' = $1 AND configuration->>\'cfg\' = $2 AND tenantId = $3;',
+        values: [(payload as any).name, payload.cfg, tenantId],
+      } satisfies PgQueryConfig,
+      'configuration',
+    );
+
     const queryRes = await handlePostExecuteSqlStatement<{ configuration: NetworkMap }>(
       {
         text: 'INSERT INTO network_map (configuration) VALUES ($1) RETURNING configuration',
@@ -46,6 +58,10 @@ export const NetworkMapRepo: CrudRepository<NetworkMap> = {
       } satisfies PgQueryConfig,
       'configuration',
     );
+
+    // HOT-RELOAD: Invalidate Redis cache so processors load fresh config
+    await publishReloadSignal();
+
     return queryRes.rows[0].configuration;
   },
 
@@ -57,6 +73,11 @@ export const NetworkMapRepo: CrudRepository<NetworkMap> = {
       } satisfies PgQueryConfig,
       'configuration',
     );
+
+    if (queryRes.rowCount) {
+      await publishReloadSignal();
+    }
+
     return queryRes.rowCount ? queryRes.rows[0].configuration : null;
   },
   remove: async function ({ id, cfg, tenantId }): Promise<boolean> {
@@ -67,6 +88,11 @@ export const NetworkMapRepo: CrudRepository<NetworkMap> = {
       } satisfies PgQueryConfig,
       'configuration',
     );
+
+    if (queryRes.rowCount) {
+      await publishReloadSignal();
+    }
+
     return queryRes.rowCount ? true : false;
   },
 };

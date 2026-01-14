@@ -50,7 +50,43 @@ export const runServer = async (): Promise<void> => {
     if (!isConnected) {
       throw new Error('Unable to connect to nats after 10 retries');
     }
+
+    // Subscribe to Redis Pub/Sub for hot-reload support
+    subscribeToConfigReload();
   }
+};
+
+/**
+ * Subscribe to Redis Pub/Sub channel for configuration reload signals.
+ * When admin-service publishes to 'config:reload', this processor reloads its configurations.
+ */
+const subscribeToConfigReload = (): void => {
+  const Redis = require('ioredis');
+  const redisConfig = configuration.redisConfig;
+  const redisHost = redisConfig?.servers?.[0]?.host || 'tazama-valkey';
+  const redisPort = redisConfig?.servers?.[0]?.port || 6379;
+
+  const subscriber = new Redis({ host: redisHost, port: redisPort });
+
+  subscriber.subscribe('config:reload', (err: Error | null) => {
+    if (err) {
+      loggerService.error(`[Hot-Reload] Failed to subscribe to config:reload channel: ${err.message}`);
+      return;
+    }
+    loggerService.log('[Hot-Reload] Subscribed to config:reload channel');
+  });
+
+  subscriber.on('message', async (channel: string, message: string) => {
+    if (channel === 'config:reload') {
+      loggerService.log(`[Hot-Reload] Received reload signal: ${message}`);
+      try {
+        await loadAllTypologyConfigs(databaseManager);
+        loggerService.log('[Hot-Reload] Typology configurations reloaded successfully');
+      } catch (error) {
+        loggerService.error(`[Hot-Reload] Reload failed: ${(error as Error).message}`);
+      }
+    }
+  });
 };
 
 process.on('uncaughtException', (err) => {

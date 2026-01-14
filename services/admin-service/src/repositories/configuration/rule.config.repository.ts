@@ -4,6 +4,8 @@ import type { RuleConfig } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { handlePostExecuteSqlStatement } from '../../services/database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
+import { publishReloadSignal } from '../../services/redis.service';
+
 export const RuleConfigRepo: CrudRepository<RuleConfig> = {
   list: async function ({ offset, limit, filters, order, sort, tenantId }): Promise<{ data: RuleConfig[]; total: number }> {
     sort ??= 'cfg';
@@ -47,6 +49,10 @@ export const RuleConfigRepo: CrudRepository<RuleConfig> = {
       } satisfies PgQueryConfig,
       'configuration',
     );
+
+    // HOT-RELOAD: Invalidate Redis cache so processors load fresh config
+    await publishReloadSignal();
+
     return queryRes.rows[0].configuration;
   },
 
@@ -58,6 +64,11 @@ export const RuleConfigRepo: CrudRepository<RuleConfig> = {
       } satisfies PgQueryConfig,
       'configuration',
     );
+
+    if (queryRes.rowCount) {
+      await publishReloadSignal();
+    }
+
     return queryRes.rowCount ? queryRes.rows[0].configuration : null;
   },
 
@@ -69,6 +80,11 @@ export const RuleConfigRepo: CrudRepository<RuleConfig> = {
       } satisfies PgQueryConfig,
       'configuration',
     );
+
+    if (queryRes.rowCount) {
+      await publishReloadSignal();
+    }
+
     return queryRes.rowCount ? true : false;
   },
 };
