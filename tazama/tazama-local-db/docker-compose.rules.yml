@@ -1,0 +1,58 @@
+# Docker Compose - Rules (4 rules: 006, 018, 901, 902)
+
+services:
+  # Rule 006: Structuring
+  rule-006:
+    image: tazamaorg/rule-006:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUNCTION_NAME=rule-006-rel-${TAZAMA_VERSION}
+      - RULE_NAME=006
+      - APM_SERVICE_NAME=rule-006
+    depends_on:
+      - valkey
+      - nats
+
+  # Rule 018: High Value Transfer
+  rule-018:
+    image: tazamaorg/rule-018:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUNCTION_NAME=rule-018-rel-${TAZAMA_VERSION}
+      - RULE_NAME=018
+      - APM_SERVICE_NAME=rule-018
+    depends_on:
+      - valkey
+      - nats
+
+  # Rule 901: Debtor Velocity
+  rule-901:
+    image: tazamaorg/rule-901:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUNCTION_NAME=rule-901-rel-${TAZAMA_VERSION}
+      - RULE_NAME=901
+      - APM_SERVICE_NAME=rule-901
+    depends_on:
+      - valkey
+      - nats
+
+  # Rule 902: Creditor Velocity
+  rule-902:
+    image: tazamaorg/rule-902:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUNCTION_NAME=rule-902-rel-${TAZAMA_VERSION}
+      - RULE_NAME=902
+      - APM_SERVICE_NAME=rule-902
+    depends_on:
+      - valkey
+      - nats

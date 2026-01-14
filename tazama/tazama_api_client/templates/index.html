@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection Dashboard - Tazama</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
+    <link rel="stylesheet" href="/static/css/status.css?v=2">
+    <link rel="stylesheet" href="/static/css/animations.css?v=1">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Fraud Detection Dashboard</h1>
+            <p class="subtitle" style="font-weight: 500; letter-spacing: 0.5px;">Monitor and test your fraud prevention
+                system</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot offline" id="statusDot"></div>
+                <span id="statusText">Checking System Status...</span>
+            </div>
+            <button class="btn btn-primary" style="width: auto;" onclick="checkHealth()">
+                <span>🔄</span> Check Connectivity
+            </button>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <h2 style="color: #fff; border-bottom-color: rgba(255,255,255,0.2);">📊 Dashboard</h2>
+            <div id="statsContainer"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
+                <div class="stat-box" style="background: rgba(255,255,255,0.15);">
+                    <div class="stat-value" id="statTotal" style="color: #fff;">0</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8);">Total Tests</div>
+                </div>
+                <div class="stat-box" style="background: rgba(16,185,129,0.3);">
+                    <div class="stat-value" id="statSuccess" style="color: #10b981;">0</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8);">Success</div>
+                </div>
+                <div class="stat-box" style="background: rgba(239,68,68,0.3);">
+                    <div class="stat-value" id="statFailed" style="color: #ef4444;">0</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8);">Failed</div>
+                </div>
+                <div class="stat-box" style="background: rgba(255,255,255,0.15);">
+                    <div class="stat-value" id="statRate" style="color: #fff;">0%</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8);">Success Rate</div>
+                </div>
+                <div class="stat-box" style="background: rgba(255,255,255,0.15);">
+                    <div class="stat-value" id="statAvgTime" style="color: #fff;">0ms</div>
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8);">Avg Response</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                <button class="btn btn-secondary" style="width: auto;" onclick="loadStats()">🔄 Refresh Stats</button>
+                <a href="/docs" target="_blank" class="btn btn-secondary" style="width: auto; text-decoration: none;">📚
+                    API Docs</a>
+            </div>
+        </div>
+
+        <!-- Batch Testing -->
+        <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #44337a 0%, #6b46c1 100%);">
+            <h2 style="color: #fff; border-bottom-color: rgba(255,255,255,0.2);">🚀 Batch Testing</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 1rem;">Run multiple test scenarios in sequence</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem;">
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_quick_accc" checked> Quick ACCC
+                </label>
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_quick_acsc" checked> Quick ACSC
+                </label>
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_quick_rjct" checked> Quick RJCT
+                </label>
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_rule_901"> Rule 901 (Velocity)
+                </label>
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_rule_902"> Rule 902 (Money Mule)
+                </label>
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_rule_006"> Rule 006 (Structuring)
+                </label>
+                <label style="color: #fff; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="batch_rule_018"> Rule 018 (High Value)
+                </label>
+            </div>
+            <button class="btn btn-primary" style="background: #9f7aea;" onclick="runBatchTest()">▶️ Run Batch
+                Test</button>
+            <div id="batchResults" class="response-box"
+                style="display:none; margin-top: 1rem; background: rgba(255,255,255,0.1);">
+                <pre style="color: #fff;"></pre>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Test pacs.008 -->
+            <div class="card">
+                <h2>📤 Send Transfer (pacs.008)</h2>
+                <p class="card-desc">Initiate a credit transfer request. This simulates a customer sending money.</p>
+
+                <div class="form-group">
+                    <label>Debtor Account (Pengirim)</label>
+                    <input type="text" id="debtorAccount008" placeholder="e.g. GB_TEST_ACC_001" value="GB_TEST_ACC_001">
+                </div>
+                <div class="form-group">
+                    <label>Creditor Account (Penerima)</label>
+                    <input type="text" id="creditorAccount008" placeholder="e.g. CRED_001" value="">
+                    <small style="color: #666;">Kosongkan untuk random. Isi agar berbeda tiap test untuk hindari Rule
+                        902.</small>
+                </div>
+                <div class="form-group">
+                    <label>Amount (IDR)</label>
+                    <input type="number" id="amount008" placeholder="e.g. 5000" step="0.01" value="5000">
+                </div>
+                <button class="btn btn-success" onclick="testPacs008()">Send Request</button>
+                <div id="response008" class="response-box" style="display:none;">
+                    <pre></pre>
+                </div>
+            </div>
+
+            <!-- Full E2E ISO 20022 Flow -->
+            <div class="card"
+                style="background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
+                <h2 style="color: #fff; border: none; margin-bottom: 0.5rem; font-size: 1.5rem;">
+                    🔗 Full ISO 20022 E2E Flow
+                </h2>
+                <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 1rem; letter-spacing: 0.5px;">
+                    <span style="color: #38bdf8;">pain.001</span> →
+                    <span style="color: #a78bfa;">pain.013</span> →
+                    <span style="color: #34d399;">pacs.008</span> →
+                    <span style="color: #fbbf24;">pacs.002</span>
+                </p>
+
+                <!-- Why Test This Section -->
+                <div
+                    style="background: rgba(99, 102, 241, 0.15); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 3px solid #6366f1;">
+                    <div style="color: #a5b4fc; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">💡 Kenapa
+                        Harus Test Ini?</div>
+                    <ul style="color: #c7d2fe; font-size: 0.85rem; margin: 0; padding-left: 1.25rem; line-height: 1.6;">
+                        <li><strong>Validasi Full Lifecycle</strong> - Test seluruh alur pembayaran dari inisiasi sampai
+                            konfirmasi</li>
+                        <li><strong>Compliance ISO 20022</strong> - Pastikan sistem Anda mendukung standar pesan
+                            internasional</li>
+                        <li><strong>Fraud Detection</strong> - Verifikasi Tazama dapat mendeteksi fraud di setiap tahap
+                        </li>
+                        <li><strong>Integration Test</strong> - Pastikan semua komponen saling terhubung dengan benar
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: #e2e8f0; font-weight: 500; font-size: 0.9rem;">Debtor Account</label>
+                    <input type="text" id="e2eDebtorAccount" placeholder="e.g. E2E_DEBTOR_001" value="E2E_DEBTOR_001"
+                        style="background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: #e2e8f0; font-weight: 500; font-size: 0.9rem;">Creditor Account</label>
+                    <input type="text" id="e2eCreditorAccount" placeholder="e.g. E2E_CREDITOR_001"
+                        value="E2E_CREDITOR_001"
+                        style="background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: #e2e8f0; font-weight: 500; font-size: 0.9rem;">Amount (IDR)</label>
+                    <input type="number" id="e2eAmount" placeholder="e.g. 1000000" step="0.01" value="1000000"
+                        style="background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="color: #e2e8f0; font-weight: 500; font-size: 0.9rem;">Final Status</label>
+                    <select id="e2eFinalStatus"
+                        style="background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 100%;">
+                        <option value="ACCC" style="background: #1a1a2e;">ACCC - Accepted Customer Credit</option>
+                        <option value="ACSC" style="background: #1a1a2e;">ACSC - Accepted Settlement Completed</option>
+                        <option value="RJCT" style="background: #1a1a2e;">RJCT - Rejected</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary"
+                    style="background: linear-gradient(90deg, #6366f1, #8b5cf6); border: none; color: #fff; font-weight: 600; padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); transition: all 0.3s ease;"
+                    onclick="testE2EFlow()"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(99, 102, 241, 0.5)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(99, 102, 241, 0.4)';">
+                    🚀 Run Full E2E Flow
+                </button>
+
+                <!-- Progress Steps -->
+                <div id="e2eProgressBox" style="display:none; margin-top: 1.5rem;">
+                    <div
+                        style="background: rgba(255,255,255,0.05); padding: 1.25rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                        <div style="color: #e2e8f0; font-weight: 600; margin-bottom: 1rem; font-size: 0.95rem;">📊
+                            Progress</div>
+                        <div id="e2eSteps" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div id="step1" class="e2e-step"
+                                style="display: flex; align-items: center; gap: 12px; padding: 0.5rem 0;">
+                                <span class="step-icon" style="font-size: 1.2em; min-width: 28px;">⏳</span>
+                                <span style="color: #38bdf8; font-size: 0.9rem;">Step 1: pain.001 - Customer Credit
+                                    Transfer Initiation</span>
+                            </div>
+                            <div id="step2" class="e2e-step"
+                                style="display: flex; align-items: center; gap: 12px; padding: 0.5rem 0;">
+                                <span class="step-icon" style="font-size: 1.2em; min-width: 28px;">⏳</span>
+                                <span style="color: #a78bfa; font-size: 0.9rem;">Step 2: pain.013 - Creditor Payment
+                                    Activation Request</span>
+                            </div>
+                            <div id="step3" class="e2e-step"
+                                style="display: flex; align-items: center; gap: 12px; padding: 0.5rem 0;">
+                                <span class="step-icon" style="font-size: 1.2em; min-width: 28px;">⏳</span>
+                                <span style="color: #34d399; font-size: 0.9rem;">Step 3: pacs.008 - FI to FI Customer
+                                    Credit Transfer</span>
+                            </div>
+                            <div id="step4" class="e2e-step"
+                                style="display: flex; align-items: center; gap: 12px; padding: 0.5rem 0;">
+                                <span class="step-icon" style="font-size: 1.2em; min-width: 28px;">⏳</span>
+                                <span style="color: #fbbf24; font-size: 0.9rem;">Step 4: pacs.002 - Payment Status
+                                    Report</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Log -->
+                <div id="responseE2E" class="response-box"
+                    style="display:none; margin-top: 1.5rem; background: rgba(0,0,0,0.4); border: none; border-radius: 10px; padding: 1rem; max-height: 400px; overflow-y: auto;">
+                    <div style="color: #94a3b8; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">📋
+                        Response Log</div>
+                    <pre
+                        style="color: #e2e8f0; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
+                </div>
+            </div>
+
+            <!-- Fraud Simulation Flow -->
+            <div class="card"
+                style="background: linear-gradient(145deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%); border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.3);">
+                <h2 style="color: #fff; border: none; margin-bottom: 0.5rem; font-size: 1.4rem;">
+                    🎭 Fraud Simulation Flow
+                </h2>
+                <p style="color: #fca5a5; font-size: 0.9rem; margin-bottom: 1rem;">
+                    Simulasi lengkap: Normal TX → Trigger Fraud → Deteksi → Block → Summary
+                </p>
+
+                <!-- How it works -->
+                <div
+                    style="background: rgba(0,0,0,0.2); padding: 0.85rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid #f87171;">
+                    <div style="color: #fecaca; font-size: 0.8rem; line-height: 1.6;">
+                        <strong>5 Steps:</strong> ✅ Normal TX → ⚠️ Attack Pattern → 🔍 Detection → ❌ Block → 📊 Summary
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label style="color: #fecaca; font-weight: 500; font-size: 0.85rem;">Account ID</label>
+                    <input type="text" id="simAccountId" value="FRAUD_SIM_001"
+                        style="background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 0.65rem 0.85rem; border-radius: 6px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label style="color: #fecaca; font-weight: 500; font-size: 0.85rem;">Rule to Trigger</label>
+                    <select id="simRule"
+                        style="background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 0.65rem 0.85rem; border-radius: 6px; width: 100%;">
+                        <option value="rule_006" style="background: #991b1b;">Rule 006 - Structuring / Smurfing</option>
+                        <option value="rule_018" style="background: #991b1b;">Rule 018 - High Value Transfer</option>
+                        <option value="rule_901" style="background: #991b1b;">Rule 901 - Velocity (Debtor)</option>
+                        <option value="rule_902" style="background: #991b1b;">Rule 902 - Money Mule (Creditor)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: #fecaca; font-weight: 500; font-size: 0.85rem;">Attack Transactions</label>
+                    <input type="number" id="simAttackCount" value="6" min="3" max="20"
+                        style="background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 0.65rem 0.85rem; border-radius: 6px; width: 100%;">
+                </div>
+
+                <button class="btn btn-primary"
+                    style="background: linear-gradient(90deg, #dc2626, #ef4444); border: none; color: #fff; font-weight: 600; padding: 0.75rem 1.75rem; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); transition: all 0.3s ease;"
+                    onclick="runFraudSimulation()"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(220, 38, 38, 0.5)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(220, 38, 38, 0.4)';">
+                    🎭 Run Fraud Simulation
+                </button>
+
+                <!-- Progress Steps -->
+                <div id="fraudSimProgress" style="display:none; margin-top: 1.25rem;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px;">
+                        <div style="color: #fecaca; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">📊
+                            Simulation Progress</div>
+                        <div id="fraudSimSteps" style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="sim-step" data-step="1"
+                                style="display: flex; align-items: center; gap: 10px; padding: 0.4rem 0;">
+                                <span class="sim-icon" style="font-size: 1.1em; min-width: 24px;">⏳</span>
+                                <span style="color: #34d399; font-size: 0.85rem;">Step 1: Normal Transaction
+                                    (ACCC)</span>
+                            </div>
+                            <div class="sim-step" data-step="2"
+                                style="display: flex; align-items: center; gap: 10px; padding: 0.4rem 0;">
+                                <span class="sim-icon" style="font-size: 1.1em; min-width: 24px;">⏳</span>
+                                <span style="color: #fbbf24; font-size: 0.85rem;">Step 2: Trigger Fraud Pattern</span>
+                            </div>
+                            <div class="sim-step" data-step="3"
+                                style="display: flex; align-items: center; gap: 10px; padding: 0.4rem 0;">
+                                <span class="sim-icon" style="font-size: 1.1em; min-width: 24px;">⏳</span>
+                                <span style="color: #60a5fa; font-size: 0.85rem;">Step 3: Check Fraud Detection</span>
+                            </div>
+                            <div class="sim-step" data-step="4"
+                                style="display: flex; align-items: center; gap: 10px; padding: 0.4rem 0;">
+                                <span class="sim-icon" style="font-size: 1.1em; min-width: 24px;">⏳</span>
+                                <span style="color: #f87171; font-size: 0.85rem;">Step 4: Block Transaction
+                                    (RJCT)</span>
+                            </div>
+                            <div class="sim-step" data-step="5"
+                                style="display: flex; align-items: center; gap: 10px; padding: 0.4rem 0;">
+                                <span class="sim-icon" style="font-size: 1.1em; min-width: 24px;">⏳</span>
+                                <span style="color: #a78bfa; font-size: 0.85rem;">Step 5: Summary</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Box -->
+                <div id="fraudSimSummary" style="display:none; margin-top: 1rem;">
+                    <div
+                        style="background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 10px; border-left: 4px solid #f87171;">
+                        <div style="color: #fca5a5; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">🚨
+                            Fraud Summary</div>
+                        <div id="fraudSummaryContent" style="color: #fecaca; font-size: 0.8rem; line-height: 1.6;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Log -->
+                <div id="fraudSimResponse" class="response-box"
+                    style="display:none; margin-top: 1rem; background: rgba(0,0,0,0.3); border: none; border-radius: 8px; padding: 0.85rem; max-height: 300px; overflow-y: auto;">
+                    <div style="color: #fca5a5; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem;">📋 Full
+                        Response</div>
+                    <pre
+                        style="color: #fecaca; font-size: 0.7rem; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
+                </div>
+            </div>
+
+            <!-- Velocity Attack -->
+            <div class="card card-danger">
+                <h2>⚡ Velocity Attack Sim (Rule 901)</h2>
+                <p class="card-desc">Simulate a high-frequency attack from a single debtor to trigger velocity limits.
+                </p>
+
+                <form id="velocityTestForm">
+                    <div class="form-group">
+                        <label>Attacker Name</label>
+                        <input type="text" name="debtor_name" value="Evil Hacker" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Attacker Account</label>
+                        <input type="text" name="debtor_account" value="GB_HACKER_001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Transaction Count</label>
+                        <input type="number" name="count" value="20" min="5" max="100">
+                    </div>
+                    <button type="submit" class="btn btn-danger">Start Attack Simulation</button>
+                    <div class="response-box" style="display:none;">
+                        <pre></pre>
+                    </div>
+                </form>
+
+                <div class="log-viewer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="checkInternalLogs('tazama-rule-901-1', 'logsBox', 'logsText')">
+                        🔍 Inspect Rule 901 Logs
+                    </button>
+                    <div id="logsBox" class="logs-container" style="display:none;">
+                        <strong>Container: tazama-rule-901-1</strong>
+                        <pre id="logsText"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rule 902 Creditor Attack -->
+            <div class="card card-purple">
+                <h2>👺 Money Mule Sim (Rule 902)</h2>
+                <p class="card-desc">Simulate multiple debtors sending funds to a single creditor (Money Mule).</p>
+
+                <form id="creditorTestForm">
+                    <div class="form-group">
+                        <label>Target Creditor</label>
+                        <input type="text" name="creditor_name" value="MULE_TARGET_01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Account</label>
+                        <input type="text" name="creditor_account" value="ACC_MULE_999" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (IDR)</label>
+                        <input type="number" name="amount" value="500000" min="1000" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Count</label>
+                        <input type="number" name="count" value="20" min="5" max="100">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="background-color: #8b5cf6;">Start Mule
+                        Simulation</button>
+                    <div class="response-box" style="display:none;">
+                        <pre></pre>
+                    </div>
+                </form>
+
+                <div class="log-viewer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="checkInternalLogs('tazama-rule-902-1', 'logsBox902', 'logsText902')">
+                        🔍 Inspect Rule 902 Logs
+                    </button>
+                    <div id="logsBox902" class="logs-container" style="display:none;">
+                        <strong>Container: tazama-rule-902-1</strong>
+                        <pre id="logsText902"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Scenarios -->
+            <div class="card card-info">
+                <h2>🛠️ Advanced Scenarios</h2>
+                <p class="card-desc">Complex attack patterns for advanced validation.</p>
+
+                <div class="scenario-selector">
+                    <div class="form-group">
+                        <label>Select Scenario</label>
+                        <select id="attackScenarioSelect" onchange="updateScenarioDesc()">
+                            <option value="rule_006">Structuring / Smurfing (Rule 006)</option>
+                            <option value="rule_018">High Value Transfer (Rule 018)</option>
+                        </select>
+                    </div>
+                    <div id="scenarioDescription" style="font-size: 0.9em;"></div>
+                </div>
+
+                <form id="advancedAttackForm">
+                    <input type="hidden" name="scenario" id="hiddenScenarioInput">
+                    <div class="form-group">
+                        <label>Amount (IDR)</label>
+                        <input type="number" name="amount" id="adv_amount" placeholder="9500000">
+                        <small id="amountHint" style="color: #666; display: block; margin-top: 4px;">
+                            💡 Recommended: <strong>9,500,000</strong> (just under reporting threshold)
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Count</label>
+                        <input type="number" name="count" id="adv_count" value="8">
+                        <small style="color: #666;">Rule 006 needs 5+ similar transactions</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="background-color: #0891b2;">Execute
+                        Scenario</button>
+                    <div class="response-box" style="display:none;">
+                        <pre></pre>
+                    </div>
+                </form>
+
+                <div class="log-viewer">
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="checkInternalLogs('tazama-rule-006-1', 'logsBox006', 'logsText006')">
+                            Rule 006 Logs
+                        </button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="checkInternalLogs('tazama-rule-018-1', 'logsBox018', 'logsText018')">
+                            Rule 018 Logs
+                        </button>
+                    </div>
+                    <div id="logsBox006" class="logs-container" style="display:none;">
+                        <strong>Rule 006 Logs</strong>
+                        <pre id="logsText006"></pre>
+                    </div>
+                    <div id="logsBox018" class="logs-container" style="display:none;">
+                        <strong>Rule 018 Logs</strong>
+                        <pre id="logsText018"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fraud Alerts Panel -->
+        <div id="fraudAlertsPanel" class="card card-warning" style="display:none; margin-bottom: 2rem;">
+            <h2>⚠️ Fraud Activity Detected</h2>
+            <div id="fraudAlertsContent"></div>
+        </div>
+
+        <!-- Database Transaction History Panel (Collapsible) -->
+        <div class="card"
+            style="margin-bottom: 2rem; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                onclick="toggleDbHistory()">
+                <h2 style="margin: 0; color: #fff; border: none;">📊 Database Transaction History</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;"
+                        onclick="event.stopPropagation(); loadDbSummary();">🔄 Refresh</button>
+                    <span id="dbHistoryToggleIcon" style="color: #94a3b8; font-size: 1.2rem;">▶</span>
+                </div>
+            </div>
+            <div id="dbHistoryContent"
+                style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <div id="dbSummaryContent" style="font-size: 0.9rem; color: #cbd5e1;">
+                    <em>Klik "🔄 Refresh" untuk melihat transaction history dari Tazama database.</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="card">
+            <div class="history-header" style="margin-bottom: 1.5rem;">
+                <h2 style="margin:0; border:none;">📊 Activity Log</h2>
+                <button class="btn btn-danger" style="width: auto; padding: 0.5rem 1rem;"
+                    onclick="clearHistory()">Clear</button>
+            </div>
+            <div id="historyContainer">
+                <!-- History Items -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="font-weight: 600; color: var(--text-main);">Processing Transaction...</p>
+    </div>
+
+    <!-- Main Logic -->
+    <script src="/static/js/app.js?v=2.1"></script>
+</body>
+
+</html>

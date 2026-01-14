@@ -1,0 +1,102 @@
+# Docker Compose - Tazama with Local PostgreSQL
+# External PostgreSQL: badraaji database on port 5430
+
+services:
+  # ============================================================================
+  # INFRASTRUCTURE (No PostgreSQL - using external)
+  # ============================================================================
+
+  valkey:
+    hostname: valkey
+    image: valkey/valkey:7.2.5
+    restart: always
+    command: "valkey-server --port 6379 --loglevel verbose"
+    healthcheck:
+      test: [ "CMD-SHELL", "valkey-cli -p 6379 ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+  nats:
+    image: nats:2
+    restart: always
+    command: [ "-DVV" ]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
+  # ============================================================================
+  # TAZAMA CORE SERVICES
+  # ============================================================================
+
+  # Transaction Monitoring Service (TMS API)
+  tms:
+    image: tazamaorg/tms-service:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      # From .env but explicitly set to ensure they're passed
+      - FUNCTION_NAME=transaction-monitoring-service
+      - APM_SERVICE_NAME=tms-service
+      - NODE_ENV=dev
+      - PORT=3000
+      - LOG_LEVEL=debug
+      # Database
+      - EVENT_HISTORY_DATABASE_USER=badraaji
+      - EVENT_HISTORY_DATABASE_PASSWORD=badraaji
+      - RAW_HISTORY_DATABASE_USER=badraaji
+      - RAW_HISTORY_DATABASE_PASSWORD=badraaji
+      # Redis - CRITICAL: Must be set even if empty
+      - REDIS_DATABASE=0
+      - REDIS_AUTH=
+      - REDIS_IS_CLUSTER=false
+      # NATS
+      - STARTUP_TYPE=nats
+      - SERVER_URL=nats:4222
+      - PRODUCER_STREAM=event-director
+      - CONSUMER_STREAM=
+    ports:
+      - "3001:3000" # External port 3001 to avoid conflict with Full Docker
+    depends_on:
+      - valkey
+      - nats
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Typology Processor
+  typology-processor:
+    image: tazamaorg/typology-processor:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUNCTION_NAME=tp-rel-${TAZAMA_VERSION}
+      - APM_SERVICE_NAME=typology-processor
+      - CONFIGURATION_DATABASE_USER=badraaji
+      - CONFIGURATION_DATABASE_PASSWORD=badraaji
+    depends_on:
+      - valkey
+      - nats
+
+  # Transaction Aggregation & Decisioning Processor (TADP)
+  transaction-aggregation-decisioning-processor:
+    image: tazamaorg/transaction-aggregation-decisioning-processor:${TAZAMA_VERSION}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUNCTION_NAME=tadp-rel-${TAZAMA_VERSION}
+      - APM_SERVICE_NAME=tadp
+      - CONFIGURATION_DATABASE_USER=badraaji
+      - CONFIGURATION_DATABASE_PASSWORD=badraaji
+      - RAW_HISTORY_DATABASE_USER=badraaji
+      - RAW_HISTORY_DATABASE_PASSWORD=badraaji
+      - EVALUATION_DATABASE_USER=badraaji
+      - EVALUATION_DATABASE_PASSWORD=badraaji
+    depends_on:
+      - valkey
+      - nats

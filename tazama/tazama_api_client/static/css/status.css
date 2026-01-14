@@ -1,0 +1,92 @@
+/* Status Bar Enhancements */
+.status-bar {
+    background: var(--card-bg);
+    padding: 1.25rem 1.5rem;
+    /* Slightly more compact vertical padding */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.status-bar.status-error {
+    border-left: 4px solid var(--danger-color);
+    background: #fffafa;
+    /* Very subtle red tint */
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.status-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+.status-dot.online {
+    background-color: var(--success-color);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+.status-dot.offline {
+    background-color: var(--danger-color);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.status-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.status-main {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.status-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.status-sub code {
+    background: #e5e7eb;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8em;
+    color: #374151;
+}
+
+/* Status variants text colors */
+.status-bar.status-error .status-main {
+    color: var(--danger-color);
+}
