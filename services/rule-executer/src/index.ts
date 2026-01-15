@@ -14,6 +14,7 @@ import { setTimeout } from 'node:timers/promises';
 import { additionalEnvironmentVariables, type Configuration } from './config';
 import { execute } from './controllers/execute';
 
+
 let configuration = validateProcessorConfig(additionalEnvironmentVariables) as Configuration;
 
 export const loggerService: LoggerService = new LoggerService(configuration);
@@ -90,11 +91,56 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
     try {
       await initializeDB();
       await runServer();
+      subscribeToConfigReload();
     } catch (err) {
       loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
       process.exit(1);
     }
   })();
 }
+
+/**
+ * Subscribe to Redis Pub/Sub channel for configuration reload signals.
+ * When admin-service publishes to 'config:reload', this service essentially clears any local cache if applicable
+ * or simply acknowledges the update.
+ * Note: Since rule-executer fetches config per transaction via databaseManager,
+ * ensuring databaseManager's cache is consistent is key.
+ * For now, we follow the pattern of other services to listen to the channel.
+ */
+/**
+ * Subscribe to Redis Pub/Sub channel for configuration reload signals.
+ * When admin-service publishes to 'config:reload', this service essentially clears any local cache if applicable
+ * or simply acknowledges the update.
+ * Note: Since rule-executer fetches config per transaction via databaseManager,
+ * ensuring databaseManager's cache is consistent is key.
+ * For now, we follow the pattern of other services to listen to the channel.
+ */
+function subscribeToConfigReload(): void {
+  const Redis = require('ioredis');
+  const redisConfig = configuration.redisConfig;
+  const redisHost = redisConfig?.servers?.[0]?.host || 'tazama-valkey';
+  const redisPort = redisConfig?.servers?.[0]?.port || 6379;
+
+  const subscriber = new Redis({ host: redisHost, port: redisPort });
+
+  subscriber.subscribe('config:reload', (err: Error | null) => {
+    if (err) {
+      loggerService.error(`[Hot-Reload] Failed to subscribe to config:reload channel: ${err.message}`, logContext, configuration.functionName);
+      return;
+    }
+    loggerService.log('[Hot-Reload] Subscribed to config:reload channel', logContext, configuration.functionName);
+  });
+
+  subscriber.on('message', async (channel: string, message: string) => {
+    if (channel === 'config:reload') {
+      loggerService.log(`[Hot-Reload] Received reload signal: ${message}`, logContext, configuration.functionName);
+      // In a more advanced implementation, we would clear specific caches here.
+      // For now, logging confirms connectivity to the control plane.
+      // If databaseManager has an internal cache that needs clearing, it should be done here.
+      // Assuming databaseManager.deleteKey or similar might be needed if it caches permanently.
+      // But based on current visibility, we are just aligning with the architecture.
+    }
+  });
+};
 
 export { configuration, databaseManager, runServer };

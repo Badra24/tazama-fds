@@ -263,109 +263,109 @@ services:
     networks:
       - tazama-network
 
-  rule-006:
-    build:
-      context: ./services/rule-executer
-      dockerfile: Dockerfile
-      args:
-        GH_TOKEN: ${GH_TOKEN}
-        RULE_NAME: "006"
-        RULE_VERSION: "1.0.0"
-    container_name: tazama-rule-006
-    environment:
-      - FUNCTION_NAME=rule-executer
-      - RULE_NAME=006
-      - RULE_VERSION=1.0.0
-      - NODE_ENV=production
-      - MAX_CPU=1
-      - APM_ACTIVE=false
-      - APM_SERVICE_NAME=rule-006
-      # Database
-      - RAW_HISTORY_DATABASE=raw_history
-      - RAW_HISTORY_DATABASE_HOST=tazama-postgres
-      - RAW_HISTORY_DATABASE_PORT=5432
-      - RAW_HISTORY_DATABASE_USER=postgres
-      - RAW_HISTORY_DATABASE_PASSWORD=postgres
-      - CONFIGURATION_DATABASE=configuration
-      - CONFIGURATION_DATABASE_HOST=tazama-postgres
-      - CONFIGURATION_DATABASE_PORT=5432
-      - CONFIGURATION_DATABASE_USER=postgres
-      - CONFIGURATION_DATABASE_PASSWORD=postgres
-      - EVENT_HISTORY_DATABASE=event_history
-      - EVENT_HISTORY_DATABASE_HOST=tazama-postgres
-      - EVENT_HISTORY_DATABASE_PORT=5432
-      - EVENT_HISTORY_DATABASE_USER=postgres
-      - EVENT_HISTORY_DATABASE_PASSWORD=postgres
-      # NATS
-      - STARTUP_TYPE=nats
-      - SERVER_URL=tazama-nats:4222
-      - PRODUCER_STREAM=typology-processor
-      - CONSUMER_STREAM=rule-006
-      - ACK_POLICY=Explicit
-      - PRODUCER_STORAGE=File
-      - PRODUCER_RETENTION_POLICY=Workqueue
-      # Cache
-      - LOCAL_CACHETTL=300
-      - LOCAL_CACHE_ENABLED=true
-      - SIDECAR_HOST=0.0.0.0:5000
-    depends_on:
-      - postgres
-      - nats
-      - event-director
-    networks:
-      - tazama-network
+  # rule-006:
+  #   build:
+  #     context: ./services/rule-executer
+  #     dockerfile: Dockerfile
+  #     args:
+  #       GH_TOKEN: ${GH_TOKEN}
+  #       RULE_NAME: "006"
+  #       RULE_VERSION: "1.0.0"
+  #   container_name: tazama-rule-006
+  #   environment:
+  #     - FUNCTION_NAME=rule-executer
+  #     - RULE_NAME=006
+  #     - RULE_VERSION=1.0.0
+  #     - NODE_ENV=production
+  #     - MAX_CPU=1
+  #     - APM_ACTIVE=false
+  #     - APM_SERVICE_NAME=rule-006
+  #     # Database
+  #     - RAW_HISTORY_DATABASE=raw_history
+  #     - RAW_HISTORY_DATABASE_HOST=tazama-postgres
+  #     - RAW_HISTORY_DATABASE_PORT=5432
+  #     - RAW_HISTORY_DATABASE_USER=postgres
+  #     - RAW_HISTORY_DATABASE_PASSWORD=postgres
+  #     - CONFIGURATION_DATABASE=configuration
+  #     - CONFIGURATION_DATABASE_HOST=tazama-postgres
+  #     - CONFIGURATION_DATABASE_PORT=5432
+  #     - CONFIGURATION_DATABASE_USER=postgres
+  #     - CONFIGURATION_DATABASE_PASSWORD=postgres
+  #     - EVENT_HISTORY_DATABASE=event_history
+  #     - EVENT_HISTORY_DATABASE_HOST=tazama-postgres
+  #     - EVENT_HISTORY_DATABASE_PORT=5432
+  #     - EVENT_HISTORY_DATABASE_USER=postgres
+  #     - EVENT_HISTORY_DATABASE_PASSWORD=postgres
+  #     # NATS
+  #     - STARTUP_TYPE=nats
+  #     - SERVER_URL=tazama-nats:4222
+  #     - PRODUCER_STREAM=typology-processor
+  #     - CONSUMER_STREAM=rule-006
+  #     - ACK_POLICY=Explicit
+  #     - PRODUCER_STORAGE=File
+  #     - PRODUCER_RETENTION_POLICY=Workqueue
+  #     # Cache
+  #     - LOCAL_CACHETTL=300
+  #     - LOCAL_CACHE_ENABLED=true
+  #     - SIDECAR_HOST=0.0.0.0:5000
+  #   depends_on:
+  #     - postgres
+  #     - nats
+  #     - event-director
+  #   networks:
+  #     - tazama-network
 
-  rule-018:
-    build:
-      context: ./services/rule-executer
-      dockerfile: Dockerfile
-      args:
-        GH_TOKEN: ${GH_TOKEN}
-        RULE_NAME: "018"
-        RULE_VERSION: "1.0.0"
-    container_name: tazama-rule-018
-    environment:
-      - FUNCTION_NAME=rule-executer
-      - RULE_NAME=018
-      - RULE_VERSION=1.0.0
-      - NODE_ENV=production
-      - MAX_CPU=1
-      - APM_ACTIVE=false
-      - APM_SERVICE_NAME=rule-018
-      # Database
-      - RAW_HISTORY_DATABASE=raw_history
-      - RAW_HISTORY_DATABASE_HOST=tazama-postgres
-      - RAW_HISTORY_DATABASE_PORT=5432
-      - RAW_HISTORY_DATABASE_USER=postgres
-      - RAW_HISTORY_DATABASE_PASSWORD=postgres
-      - CONFIGURATION_DATABASE=configuration
-      - CONFIGURATION_DATABASE_HOST=tazama-postgres
-      - CONFIGURATION_DATABASE_PORT=5432
-      - CONFIGURATION_DATABASE_USER=postgres
-      - CONFIGURATION_DATABASE_PASSWORD=postgres
-      - EVENT_HISTORY_DATABASE=event_history
-      - EVENT_HISTORY_DATABASE_HOST=tazama-postgres
-      - EVENT_HISTORY_DATABASE_PORT=5432
-      - EVENT_HISTORY_DATABASE_USER=postgres
-      - EVENT_HISTORY_DATABASE_PASSWORD=postgres
-      # NATS
-      - STARTUP_TYPE=nats
-      - SERVER_URL=tazama-nats:4222
-      - PRODUCER_STREAM=typology-processor
-      - CONSUMER_STREAM=rule-018
-      - ACK_POLICY=Explicit
-      - PRODUCER_STORAGE=File
-      - PRODUCER_RETENTION_POLICY=Workqueue
-      # Cache
-      - LOCAL_CACHETTL=300
-      - LOCAL_CACHE_ENABLED=true
-      - SIDECAR_HOST=0.0.0.0:5000
-    depends_on:
-      - postgres
-      - nats
-      - event-director
-    networks:
-      - tazama-network
+  # rule-018:
+  #   build:
+  #     context: ./services/rule-executer
+  #     dockerfile: Dockerfile
+  #     args:
+  #       GH_TOKEN: ${GH_TOKEN}
+  #       RULE_NAME: "018"
+  #       RULE_VERSION: "1.0.0"
+  #   container_name: tazama-rule-018
+  #   environment:
+  #     - FUNCTION_NAME=rule-executer
+  #     - RULE_NAME=018
+  #     - RULE_VERSION=1.0.0
+  #     - NODE_ENV=production
+  #     - MAX_CPU=1
+  #     - APM_ACTIVE=false
+  #     - APM_SERVICE_NAME=rule-018
+  #     # Database
+  #     - RAW_HISTORY_DATABASE=raw_history
+  #     - RAW_HISTORY_DATABASE_HOST=tazama-postgres
+  #     - RAW_HISTORY_DATABASE_PORT=5432
+  #     - RAW_HISTORY_DATABASE_USER=postgres
+  #     - RAW_HISTORY_DATABASE_PASSWORD=postgres
+  #     - CONFIGURATION_DATABASE=configuration
+  #     - CONFIGURATION_DATABASE_HOST=tazama-postgres
+  #     - CONFIGURATION_DATABASE_PORT=5432
+  #     - CONFIGURATION_DATABASE_USER=postgres
+  #     - CONFIGURATION_DATABASE_PASSWORD=postgres
+  #     - EVENT_HISTORY_DATABASE=event_history
+  #     - EVENT_HISTORY_DATABASE_HOST=tazama-postgres
+  #     - EVENT_HISTORY_DATABASE_PORT=5432
+  #     - EVENT_HISTORY_DATABASE_USER=postgres
+  #     - EVENT_HISTORY_DATABASE_PASSWORD=postgres
+  #     # NATS
+  #     - STARTUP_TYPE=nats
+  #     - SERVER_URL=tazama-nats:4222
+  #     - PRODUCER_STREAM=typology-processor
+  #     - CONSUMER_STREAM=rule-018
+  #     - ACK_POLICY=Explicit
+  #     - PRODUCER_STORAGE=File
+  #     - PRODUCER_RETENTION_POLICY=Workqueue
+  #     # Cache
+  #     - LOCAL_CACHETTL=300
+  #     - LOCAL_CACHE_ENABLED=true
+  #     - SIDECAR_HOST=0.0.0.0:5000
+  #   depends_on:
+  #     - postgres
+  #     - nats
+  #     - event-director
+  #   networks:
+  #     - tazama-network
 
   rule-903:
     build:
@@ -664,7 +664,6 @@ services:
       - nats
     networks:
       - tazama-network
-
   # ==========================================================================
   # KAFKA RELAY SERVICE - Publishes to Kafka topic
   # ==========================================================================

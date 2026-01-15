@@ -28,6 +28,7 @@
     "@tazama-lf/frms-coe-lib": "7.0.0-rc.2",
     "@tazama-lf/frms-coe-startup-lib": "3.0.0",
     "dotenv": "^17.2.3",
+    "ioredis": "^5.3.2",
     "node-cache": "^5.1.2",
     "rule": "npm:@tazama-lf/rule-901@3.0.1-rc.0",
     "ts-node": "^10.9.2",

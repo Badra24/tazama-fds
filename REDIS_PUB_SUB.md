@@ -1,67 +1,227 @@
-# Redis Pub/Sub for Hot Reload and Relay Service Refactoring
+# Redis Pub/Sub for Hot Reload in Tazama FDS
 
-This document outlines the Redis Pub/Sub mechanism used for hot reloading configurations in the Tazama FDS, and the refactoring done to support multi-transport relay services.
-
-## Hot Reload Mechanism
-
-The system uses Redis Pub/Sub to broadcast configuration updates to all interested services without requiring a restart.
-
-### Simplified Explanation (Analogi Grup Chat)
-
-Bayangkan sistem ini seperti **Grup Chat**:
-
-1.  **Redis Pub/Sub** adalah **Grup Chat "Info Penting"**.
-2.  **Admin Service** adalah **Admin Grup**.
-3.  **Processors** (`typology-processor`, `event-director`, dll) adalah **Anggota Grup**.
-4.  **Subscribe** artinya **Join Grup**.
-
-**Alurnya:**
-1.  Processor **Join Grup** (Subscribe). *"Kalau ada update, kasih tau ya!"*
-2.  User mengubah aturan di Admin UI.
-3.  **Admin Service** mengirim pesan ke grup: *"Eh ada aturan baru nih!"* (Publish).
-4.  Processor mendengar notifikasi ("Ting! 🔔").
-5.  Processor langsung **baca ulang buku catatan** (Database) untuk mengambil aturan terbaru.
-6.  Sistem jadi update **tanpa perlu di-restart**.
+This document explains the Redis Pub/Sub mechanism used for configuration hot reloading in Tazama FDS, including the **architectural reasoning** behind why each service subscribes to the reload channel.
 
 ---
 
-### Technical Implementation
+## Overview
 
-#### Refactoring Decision
+The Tazama Fraud Detection System (FDS) uses **Redis Pub/Sub** to enable **zero-downtime configuration updates**. When an administrator changes a rule, typology, or network map via the Admin UI, all affected services receive a signal to reload their configurations **without requiring a restart**.
 
-We introduced a shared `redis.service.ts` in the Admin Service to handle publishing commands.
+---
 
-**Why Refactor?**
-1.  **Code Duplication**: Previously, the logic to connect/publish/disconnect was duplicated or only existed in `network.map.repository.ts`.
-2.  **Consistency**: Hot reload must trigger on **Create**, **Update**, and **Delete** for **ALL** configuration types (Network Map, Rules, Typologies).
-3.  **Clean Code**: Extracting the logic into a shared service makes the repository files cleaner and easier to maintain.
+## Architecture Context: How Rules are Activated/Deactivated
 
-#### Channels
+### Network Map as the Source of Truth
 
-- **`config:reload`**: Published when any configuration change occurs.
-  - **Payload**: String timestamp (e.g., `Configuration updated at ...`)
-  - **Subscribers**: `rule-executer`, `typology-processor`, `event-director`
+In Tazama, **rule activation is controlled by the Network Map**, not by a `disabled` field in the rule configuration.
 
-### Workflow
+- The `network_map` table contains a JSON structure that defines which Rules feed into which Typologies.
+- When a rule is **disabled**, it is **removed** from the Network Map's `messages[].typologies[].rules[]` array.
+- When a rule is **enabled**, it is **added back** to the array.
 
-1.  **Configuration Update**: Administrator updates a Network Map, Rule, or Typology.
-2.  **Notification**: The Admin Service (via `redis.service.ts`) publishes to the `config:reload` channel.
-3.  **Reload**: Consuming services receive the signal and re-fetch active configurations from the database.
+```
+Network Map Structure:
+{
+  "messages": [
+    {
+      "typologies": [
+        {
+          "id": "typology-processor@1.0.0",
+          "cfg": "1.0.0",
+          "rules": [
+            { "id": "901@1.0.0", "cfg": "1.0.0" },  // Active
+            { "id": "902@1.0.0", "cfg": "1.0.0" }   // Active
+            // Rule 903 is DISABLED (not in this array)
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
 
-## Relay Service Refactoring
+This design means:
+1. `event-director` must reload to know which rules to route transactions to.
+2. `typology-processor` must reload to know which rules it should expect results from.
+3. `rule-executer` aligns with the architecture even though it fetches config per-transaction.
 
-The `relay-service` has been refactored to support multiple transport protocols via a plugin-like architecture.
+---
 
-### Supported Transports
+## Why Redis Pub/Sub?
 
-1.  **NATS** (`relay-service` / `relay-service-nats`)
-    - Uses `@tazama-lf/nats-relay-plugin`.
-    - Relays FDS results back to NATS subjects.
+### The Problem Without Hot Reload
 
-2.  **Kafka** (`relay-service-kafka`)
-    - Uses `@tazama-lf/kafka-relay-plugin`.
-    - Relays FDS results to a Kafka topic (e.g., `tazama.evaluation.result`).
+Without a hot reload mechanism:
+1. **Configuration Staleness**: Services cache configurations in memory for performance. Changes in the database are not reflected until restart.
+2. **Manual Restarts Required**: Every configuration change requires `docker restart` for affected containers.
+3. **Downtime Risk**: In a 24/7 fraud detection system, even brief downtime can allow fraudulent transactions to pass unchecked.
+4. **Operational Overhead**: Teams must coordinate restarts, increasing deployment complexity.
 
-3.  **REST** (`relay-service-rest`)
-    - Uses `@tazama-lf/rest-relay-plugin`.
-    - Pushes FDS results via HTTP POST to a webhook.
+### The Solution: Redis Pub/Sub
+
+Redis Pub/Sub provides:
+- **Instant Notification**: Changes propagate in milliseconds.
+- **Decoupled Architecture**: Services don't need direct connections to each other.
+- **Scalability**: Multiple instances of the same service all receive the signal.
+- **Simplicity**: No complex orchestration or service mesh required.
+
+---
+
+## Services That Subscribe
+
+### 1. `event-director`
+
+**Role**: Routes incoming transactions to the appropriate rules based on the Network Map.
+
+**Why It Needs Hot Reload**:
+- Caches the Network Map to quickly determine which rules apply to each transaction.
+- Without hot reload, disabled rules would still receive transactions until restart.
+- **Critical for rule enable/disable** - this is the entry point that decides which rules get called.
+
+**Reload Action**:
+```
+[Hot-Reload] Received reload signal
+[Hot-Reload] Network configurations reloaded successfully
+```
+
+---
+
+### 2. `typology-processor`
+
+**Role**: Aggregates results from multiple rules to calculate a typology score.
+
+**Why It Needs Hot Reload**:
+- Caches typology configurations including which rules contribute to each typology.
+- If a rule is disabled, the typology must stop waiting for results from that rule.
+- Without hot reload, typologies might timeout waiting for results from disabled rules.
+
+**Reload Action**:
+```
+[Hot-Reload] Received reload signal
+[Hot-Reload] Typology configurations reloaded successfully
+```
+
+---
+
+### 3. `rule-executer` (rule-901, rule-902, rule-903, etc.)
+
+**Role**: Executes individual fraud detection rules on transactions.
+
+**Why It Needs Hot Reload**:
+- While rule-executers fetch parameters per-transaction, they may cache certain configurations.
+- Aligns with the architectural pattern - all processors should respond to control plane signals.
+- Future-proofs for scenarios where rule-level caching is introduced.
+- Enables logging/monitoring of configuration changes across all services.
+
+**Reload Action**:
+```
+[Hot-Reload] Received reload signal
+// (Future: Could clear local caches or refresh rule parameters)
+```
+
+---
+
+## Technical Implementation
+
+### Publisher: `admin-service`
+
+The Admin Service publishes to Redis when any configuration is created, updated, or deleted.
+
+**Location**: `admin-service/src/services/redis.service.ts`
+
+```typescript
+export async function publishConfigReload(): Promise<void> {
+  const redis = new Redis({ host: REDIS_HOST, port: REDIS_PORT });
+  await redis.publish('config:reload', `Configuration updated at ${new Date().toISOString()}`);
+  await redis.quit();
+}
+```
+
+### Subscribers: All Processors
+
+Each processor subscribes during startup:
+
+```typescript
+function subscribeToConfigReload(): void {
+  const Redis = require('ioredis');
+  const subscriber = new Redis({ host: redisHost, port: redisPort });
+
+  subscriber.subscribe('config:reload', (err) => {
+    if (err) { /* handle error */ }
+    console.log('[Hot-Reload] Subscribed to config:reload channel');
+  });
+
+  subscriber.on('message', async (channel, message) => {
+    if (channel === 'config:reload') {
+      console.log(`[Hot-Reload] Received reload signal: ${message}`);
+      await reloadConfigurations(); // Service-specific reload logic
+    }
+  });
+}
+```
+
+---
+
+## Workflow
+
+```
+┌─────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│  Admin UI   │──────▶│  Admin Service  │──────▶│     Redis       │
+│             │ HTTP  │  (Publisher)    │ PUB   │   Pub/Sub       │
+└─────────────┘       └─────────────────┘       └────────┬────────┘
+                                                         │ NOTIFY
+           ┌─────────────────────────────────────────────┼─────────────────────────────────┐
+           │                                             │                                 │
+           ▼                                             ▼                                 ▼
+┌─────────────────┐                      ┌───────────────────────┐           ┌─────────────────┐
+│ event-director  │                      │ typology-processor    │           │ rule-executer   │
+│ (Subscriber)    │                      │ (Subscriber)          │           │ (Subscriber)    │
+│                 │                      │                       │           │                 │
+│ Reloads:        │                      │ Reloads:              │           │ Reloads:        │
+│ - Network Map   │                      │ - Typology Configs    │           │ - (Future)      │
+└─────────────────┘                      └───────────────────────┘           └─────────────────┘
+```
+
+---
+
+## Analogi Grup Chat (Simplified Explanation)
+
+Bayangkan sistem ini seperti **Grup WhatsApp "Info Update FDS"**:
+
+1. **Redis Pub/Sub** = Grup Chat
+2. **Admin Service** = Admin yang kirim pesan
+3. **Processors** = Anggota grup
+
+**Alurnya:**
+1. Semua processor **join grup** saat startup (Subscribe).
+2. User mengubah aturan via Admin UI.
+3. Admin Service kirim pesan: *"Ada update config!"* (Publish).
+4. Semua processor langsung dengar notifikasi ("Ting! 🔔").
+5. Masing-masing processor **baca ulang konfigurasi** dari database.
+6. Sistem update **tanpa restart**.
+
+---
+
+## Relay Service Refactoring (Additional Context)
+
+The `relay-service` has been refactored to support multiple transport protocols:
+
+| Service | Protocol | Plugin | Use Case |
+|---------|----------|--------|----------|
+| `relay-service` | NATS | `@tazama-lf/nats-relay-plugin` | Internal messaging |
+| `relay-service-kafka` | Kafka | `@tazama-lf/kafka-relay-plugin` | Event streaming |
+| `relay-service-rest` | HTTP | `@tazama-lf/rest-relay-plugin` | Webhook callbacks |
+
+---
+
+## Summary
+
+| Service | Subscribes? | Reload Action | Criticality |
+|---------|-------------|---------------|-------------|
+| `event-director` | ✅ | Reload Network Map | **High** - Controls routing |
+| `typology-processor` | ✅ | Reload Typology Configs | **High** - Aggregates rules |
+| `rule-executer` | ✅ | Log signal (future: clear cache) | **Medium** - Alignment |
+| `admin-service` | ❌ | Publisher only | N/A |
+| `relay-service` | ❌ | Not applicable | N/A |
+
